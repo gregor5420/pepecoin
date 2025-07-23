@@ -189,6 +189,10 @@ backBtn.onclick = () => {
 };
 
 function nextHand() {
+  const positions = Object.keys(ranges);
+  currentPosition = positions[Math.floor(Math.random() * positions.length)];
+  posDisplay.textContent = currentPosition;
+
   currentHand = getRandomHand();
   handDisplay.textContent = currentHand;
   resultDiv.textContent = '';
