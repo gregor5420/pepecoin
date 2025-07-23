@@ -1,81 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>6-max Preflop Unraised Pot GTO Range Trainer</title>
-<style>
-  body { font-family: Arial, sans-serif; max-width: 700px; margin: 20px auto; padding: 0 15px; }
-  h1 { text-align: center; }
-  #home, #trainer { display: none; }
-  .btn { margin: 5px; padding: 10px 20px; font-size: 16px; }
-  #result { margin-top: 10px; font-weight: bold; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Poker GTO Trainer</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 20px auto; padding: 0 15px; }
+    h1 { text-align: center; }
+    .btn { margin: 5px; padding: 10px 20px; font-size: 16px; }
+    #result { margin-top: 10px; font-weight: bold; }
+  </style>
 </head>
 <body>
 
-<h1>6-max Preflop Unraised Pot GTO Range Trainer</h1>
+<h1>6-max Preflop GTO Trainer</h1>
 
-<div id="home">
-  <label for="position">Select Position:</label>
-  <select id="position">
-    <option value="">--Choose Position--</option>
-    <option value="Lojack (UTG)">Lojack (UTG)</option>
-    <option value="Hijack (MP)">Hijack (MP)</option>
-    <option value="Cutoff">Cutoff</option>
-    <option value="Btn">Btn</option>
-    <option value="SB">SB</option>
-  </select>
-  <br /><br />
-  <button id="startBtn" class="btn">Start Trainer</button>
-</div>
+<p><strong>Position:</strong> <span id="posDisplay"></span></p>
+<p><strong>Hand:</strong> <span id="handDisplay"></span></p>
 
-<div id="trainer">
-  <p><strong>Position:</strong> <span id="posDisplay"></span></p>
-  <p><strong>Current Hand:</strong> <span id="handDisplay"></span></p>
-  <button class="actionBtn btn" data-action="Raise">Raise</button>
-  <button class="actionBtn btn" data-action="Fold">Fold</button>
-  <button class="actionBtn btn" data-action="Limp">Limp</button>
-  <div id="result"></div>
-  <br />
-  <button id="backBtn" class="btn">Back to Home</button>
-</div>
+<button class="actionBtn btn" data-action="Raise">Raise</button>
+<button class="actionBtn btn" data-action="Fold">Fold</button>
+<button class="actionBtn btn" data-action="Limp">Limp</button>
+
+<div id="result"></div>
 
 <script>
-// All ranges as Sets for fast lookup
 const ranges = {
-  "Lojack (UTG)": new Set([
-    "AA","KK","QQ","JJ","TT","99","88","77","66",
+  "Lojack (UTG)": new Set(["AA","KK","QQ","JJ","TT","99","88","77","66",
     "AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s",
     "KQs","KJs","KTs","K9s","K8s",
     "QJs","QTs","Q9s",
     "JTs","J9s",
     "T9s",
-    "AKo","AQo","AJo","ATo","KQo","KJo","QJo"
-  ]),
-  "Hijack (MP)": new Set([
-    "AA","KK","QQ","JJ","TT","99","88","77","66","55",
+    "AKo","AQo","AJo","ATo","KQo","KJo","QJo"]),
+  "Hijack (MP)": new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55",
     "AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s",
     "KQs","KJs","KTs","K9s","K8s","K7s","K6s",
     "QJs","QTs","Q9s","Q8s",
     "JTs","J9s",
     "T9s","98s","87s","76s",
-    "AKo","AQo","AJo","ATo","KQo","KJo","QJo","KTo","QTo"
-  ]),
-  "Cutoff": new Set([
-    "AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33",
+    "AKo","AQo","AJo","ATo","KQo","KJo","QJo","KTo","QTo"]),
+  "Cutoff": new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33",
     "AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s",
     "KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s",
     "QJs","QTs","Q9s","Q8s","Q7s","Q6s",
     "JTs","J9s","J8s",
     "T9s","T8s","T7s",
     "98s","97s","87s","76s",
-    "AKo","AQo","AJo","ATo",
-    "KQo","KTo","KJo",
-    "QJo","QTo","JTo"
-  ]),
-  "Btn": new Set([
-    "AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22",
+    "AKo","AQo","AJo","ATo","KQo","KJo","QJo","KTo","QTo","JTo"]),
+  "Btn": new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22",
     "AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s",
     "KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s",
     "QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s",
@@ -90,11 +63,8 @@ const ranges = {
     "KQo","KJo","KTo","K9o","K8o",
     "QJo","QTo","Q9o",
     "JTo","J9o",
-    "T9o","T8o"
-  ]),
-  "SB": new Set([
-    "AA","KK","QQ","JJ","TT",
-    "99","88","77","66","55","44","33","22",
+    "T9o","T8o"]),
+  "SB": new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22",
     "AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s",
     "KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s",
     "QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","Q2s",
@@ -113,87 +83,37 @@ const ranges = {
     "T9o","T8o","T7o",
     "98o","97o",
     "87o","86o",
-    "76o"
-  ])
+    "76o"])
 };
 
-const lojackHands = Array.from(ranges["Lojack (UTG)"]);
-const hijackHands = Array.from(ranges["Hijack (MP)"]);
-const cutoffHands = Array.from(ranges["Cutoff"]);
-const btnHands = Array.from(ranges["Btn"]);
-const sbHands = Array.from(ranges["SB"]);
-
-const allHands = [
-  ...lojackHands,
-  ...hijackHands,
-  ...cutoffHands,
-  ...btnHands,
-  ...sbHands
-];
-
-// Generate all standard 169 poker hands for validation and random picks
 const ranks = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
-const suitedCombos = [];
-const offsuitCombos = [];
-const pairs = [];
+const allHands = [];
 
 for (let i = ranks.length - 1; i >= 0; i--) {
   for (let j = ranks.length - 1; j >= 0; j--) {
     if (i === j) {
-      pairs.push(ranks[i] + ranks[j]);
+      allHands.push(ranks[i] + ranks[j]); // pair
     } else if (i > j) {
-      suitedCombos.push(ranks[i] + ranks[j] + 's');
-      offsuitCombos.push(ranks[i] + ranks[j] + 'o');
+      allHands.push(ranks[i] + ranks[j] + 's'); // suited
+      allHands.push(ranks[i] + ranks[j] + 'o'); // offsuit
     }
   }
 }
 
-const all169Hands = [...pairs, ...suitedCombos, ...offsuitCombos];
-
-function getRandomHand() {
-  return all169Hands[Math.floor(Math.random() * all169Hands.length)];
-}
-
-const homeDiv = document.getElementById('home');
-const trainerDiv = document.getElementById('trainer');
-const positionSelect = document.getElementById('position');
-const startBtn = document.getElementById('startBtn');
 const posDisplay = document.getElementById('posDisplay');
 const handDisplay = document.getElementById('handDisplay');
 const resultDiv = document.getElementById('result');
-const backBtn = document.getElementById('backBtn');
 const actionButtons = document.querySelectorAll('.actionBtn');
 
 let currentPosition = '';
 let currentHand = '';
 
-startBtn.onclick = () => {
-  const pos = positionSelect.value;
-  if (!pos) {
-    alert('Please select a position!');
-    return;
-  }
-  currentPosition = pos;
+function nextRound() {
+  const allPositions = Object.keys(ranges);
+  currentPosition = allPositions[Math.floor(Math.random() * allPositions.length)];
+  currentHand = allHands[Math.floor(Math.random() * allHands.length)];
+
   posDisplay.textContent = currentPosition;
-  homeDiv.style.display = 'none';
-  trainerDiv.style.display = 'block';
-  resultDiv.textContent = '';
-  nextHand();
-};
-
-backBtn.onclick = () => {
-  trainerDiv.style.display = 'none';
-  homeDiv.style.display = 'block';
-  resultDiv.textContent = '';
-  positionSelect.value = '';
-};
-
-function nextHand() {
-  const positions = Object.keys(ranges);
-  currentPosition = positions[Math.floor(Math.random() * positions.length)];
-  posDisplay.textContent = currentPosition;
-
-  currentHand = getRandomHand();
   handDisplay.textContent = currentHand;
   resultDiv.textContent = '';
 }
@@ -201,29 +121,26 @@ function nextHand() {
 actionButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     const userAction = btn.getAttribute('data-action');
-    const correctToRaise = ranges[currentPosition].has(currentHand);
+    const isInRange = ranges[currentPosition].has(currentHand);
+    const correctAction = isInRange ? 'Raise' : 'Fold';
+    const userCorrect = (userAction === correctAction);
 
-    let correctAction = 'Fold';
-    if (correctToRaise) correctAction = 'Raise';
-
-    // Limp never correct based on current logic
-    let userIsCorrect = (userAction === correctAction);
-
-    if (userIsCorrect) {
-      resultDiv.textContent = `Correct! ${currentHand} should be ${correctAction}.`;
+    if (userCorrect) {
+      resultDiv.textContent = `✅ Correct! ${currentHand} should be ${correctAction}.`;
       resultDiv.style.color = 'green';
     } else {
-      resultDiv.textContent = `Incorrect. ${currentHand} should be ${correctAction}.`;
+      resultDiv.textContent = `❌ Incorrect. ${currentHand} should be ${correctAction}.`;
       resultDiv.style.color = 'red';
     }
 
-    setTimeout(() => {
-      nextHand();
-    }, 1500);
+    setTimeout(nextRound, 1500);
   });
 });
+
+nextRound();
 </script>
 
 </body>
 </html>
+
 
