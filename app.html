@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>6-Max Preflop Unraised Pot GTO Range Trainer</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #121212;
+      color: white;
+      text-align: center;
+      padding: 2em;
+    }
+    .hand {
+      font-size: 2em;
+      margin: 1em 0;
+    }
+    button {
+      margin: 0.5em;
+      padding: 15px 25px;
+      font-size: 16px;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #555;
+    }
+    #result {
+      margin-top: 1em;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>6-Max Preflop Unraised Pot GTO Range Trainer</h1>
+
+  <div id="position"></div>
+  <div class="hand" id="hand"></div>
+
+  <div>
+    <button onclick="selectAction('raise')">Raise</button>
+    <button onclick="selectAction('fold')">Fold</button>
+    <button onclick="selectAction('limp')">Limp</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    const positions = ['Lojack (UTG)', 'Hijack (MP)'];
+    const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+
+    const ranges = {
+      'Lojack (UTG)': new Set([
+        'AA','KK','QQ','JJ','TT','99','88','77','66',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s',
+        'KQs','KJs','KTs','K9s','K8s',
+        'QJs','QTs','Q9s',
+        'JTs','J9s','T9s',
+        'AKo','AQo','AJo','ATo','KQo','KJo','QJo'
+      ]),
+      'Hijack (MP)': new Set([
+        'AA','KK','QQ','JJ','TT','99','88','77','66','55',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+        'KQs','KJs','KTs','K9s','K8s','K7s','K6s',
+        'QJs','QTs','Q9s','Q8s',
+        'JTs','J9s','T9s','98s','87s','76s',
+        'AKo','AQo','AJo','ATo','KQo','KJo','QJo','KTo','QTo'
+      ])
+    };
+
+    let currentHand = '';
+    let currentPos = '';
+
+    function getRandomHand() {
+      const r1 = ranks[Math.floor(Math.random() * ranks.length)];
+      const r2 = ranks[Math.floor(Math.random() * ranks.length)];
+      const suited = Math.random() > 0.5;
+
+      if (r1 === r2) return r1 + r2; // Pair
+      return (r1 > r2 ? r1 + r2 : r2 + r1) + (suited ? 's' : 'o');
+    }
+
+    function getRandomPosition() {
+      return positions[Math.floor(Math.random() * positions.length)];
+    }
+
+    function loadHand() {
+      currentHand = getRandomHand();
+      currentPos = getRandomPosition();
+      document.getElementById('hand').textContent = `Hand: ${currentHand}`;
+      document.getElementById('position').textContent = `Position: ${currentPos}`;
+      document.getElementById('result').textContent = '';
+    }
+
+    function selectAction(action) {
+      const allowed = ranges[currentPos]?.has(currentHand);
+
+      let correct = false;
+
+      if (action === 'raise' && allowed) {
+        correct = true;
+      } else if (action === 'fold' && !allowed) {
+        correct = true;
+      }
+
+      document.getElementById('result').textContent = correct ? '✅ Correct!' : '❌ Incorrect.';
+      document.getElementById('result').style.color = correct ? '#4caf50' : '#ff5252';
+
+      setTimeout(loadHand, 1500);
+    }
+
+    loadHand();
+  </script>
+
+</body>
+</html>
