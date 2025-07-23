@@ -14,11 +14,16 @@
     h1 {
       margin-bottom: 24px;
     }
-    select, button {
+    button {
       font-size: 1.1rem;
       padding: 8px 16px;
       margin: 10px 5px;
       cursor: pointer;
+    }
+    #handDisplay {
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin: 15px 0;
     }
     #result {
       margin-top: 20px;
@@ -32,18 +37,16 @@
   <h1>6-Max Preflop Unraised Pot GTO Range Trainer</h1>
 
   <div>
-    <label for="position">Position:</label>
-    <span id="positionName" style="font-weight:bold; margin-left: 8px;"></span>
+    <label>Position:</label>
+    <span id="positionName" style="font-weight:bold;"></span>
   </div>
 
-  <div>
-    <label for="handSelect">Select Hand:</label>
-    <select id="handSelect"></select>
-  </div>
+  <div id="handDisplay"></div>
 
   <div>
     <button id="raiseBtn">Raise</button>
     <button id="foldBtn">Fold</button>
+    <button id="nextBtn">Next</button>
   </div>
 
   <div id="result"></div>
@@ -110,91 +113,64 @@
         "76o"])
     };
 
-    const positions = Object.keys(ranges);
-
-    // Helper to generate all poker hands in standard format for dropdown
-    // Pocket pairs, suited, offsuit combos
-
     const ranks = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+    const suited = ['s','o'];
 
-    function generateAllHands() {
-      const hands = [];
+    function getRandomHand() {
+      const i = Math.floor(Math.random() * ranks.length);
+      const j = Math.floor(Math.random() * ranks.length);
 
-      for (let i = 0; i < ranks.length; i++) {
-        for (let j = 0; j < ranks.length; j++) {
-          if (i === j) {
-            // Pocket pair
-            hands.push(ranks[i]+ranks[j]);
-          } else if (i < j) {
-            // suited
-            hands.push(ranks[i]+ranks[j]+'s');
-            // offsuit
-            hands.push(ranks[i]+ranks[j]+'o');
-          }
-        }
-      }
-      return hands;
+      if (i === j) return ranks[i] + ranks[j]; // pair
+
+      const suitedOrOff = suited[Math.floor(Math.random() * 2)];
+      const hand = i < j ? ranks[i] + ranks[j] + suitedOrOff : ranks[j] + ranks[i] + suitedOrOff;
+      return hand;
     }
 
-    const allHands = generateAllHands();
+    const positions = Object.keys(ranges);
+    let currentPosition = '';
+    let currentHand = '';
 
-    // DOM elements
     const positionSpan = document.getElementById('positionName');
-    const handSelect = document.getElementById('handSelect');
-    const raiseBtn = document.getElementById('raiseBtn');
-    const foldBtn = document.getElementById('foldBtn');
+    const handDisplay = document.getElementById('handDisplay');
     const resultDiv = document.getElementById('result');
 
-    let currentPosition = null;
+    const raiseBtn = document.getElementById('raiseBtn');
+    const foldBtn = document.getElementById('foldBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
-    function setRandomPosition() {
-      const randomIndex = Math.floor(Math.random() * positions.length);
-      currentPosition = positions[randomIndex];
+    function generateNewQuestion() {
+      currentPosition = positions[Math.floor(Math.random() * positions.length)];
+      currentHand = getRandomHand();
+
       positionSpan.textContent = currentPosition;
-    }
-
-    function populateHandSelect() {
-      handSelect.innerHTML = '';
-      allHands.forEach(hand => {
-        const option = document.createElement('option');
-        option.value = hand;
-        option.textContent = hand;
-        handSelect.appendChild(option);
-      });
+      handDisplay.textContent = currentHand;
+      resultDiv.textContent = '';
     }
 
     function checkAnswer(wasRaise) {
-      const selectedHand = handSelect.value;
-      const correctRaise = ranges[currentPosition].has(selectedHand);
+      const isRaise = ranges[currentPosition].has(currentHand);
+      let msg = '';
 
-      let message = '';
+      if (wasRaise && isRaise) msg = `✅ Correct! ${currentHand} is a raise from ${currentPosition}.`;
+      else if (!wasRaise && !isRaise) msg = `✅ Correct! ${currentHand} is a fold from ${currentPosition}.`;
+      else if (wasRaise && !isRaise) msg = `❌ Incorrect. ${currentHand} is a fold from ${currentPosition}.`;
+      else msg = `❌ Incorrect. ${currentHand} is a raise from ${currentPosition}.`;
 
-      if (wasRaise) {
-        if (correctRaise) {
-          message = `Correct! ${selectedHand} is in the ${currentPosition} raise range.`;
-        } else {
-          message = `Incorrect. ${selectedHand} is NOT in the ${currentPosition} raise range.`;
-        }
-      } else {
-        if (correctRaise) {
-          message = `Incorrect. ${selectedHand} is in the ${currentPosition} raise range, should raise.`;
-        } else {
-          message = `Correct! Folding ${selectedHand} is the right play from ${currentPosition}.`;
-        }
-      }
-
-      resultDiv.textContent = message;
+      resultDiv.textContent = msg;
     }
 
-    raiseBtn.addEventListener('click', () => {
-      checkAnswer(true);
-    });
+    raiseBtn.addEventListener('click', () => checkAnswer(true));
+    foldBtn.addEventListener('click', () => checkAnswer(false));
+    nextBtn.addEventListener('click', () => generateNewQuestion());
 
-    foldBtn.addEventListener('click', () => {
-      checkAnswer(false);
-    });
+    // On load
+    generateNewQuestion();
+  </script>
 
-    // On page load
+</body>
+</html>
+
     setRandomPosition();
     populateHandSelect();
 
